@@ -145,9 +145,29 @@ class Tes_kerjakan extends Tes_Controller {
         $this->form_validation->set_rules('tes-soal-id', 'Soal','required|strip_tags');
         $this->form_validation->set_rules('tes-soal-nomor', 'Nomor Soal','required|strip_tags');
         $this->form_validation->set_rules('soal-jawaban', 'Jawaban','required|strip_tags');
+        if (isset($_FILES['file-image'])) {
+        $this->form_validation->set_rules('file-image', '','callback_file_check');            
+        }
         
         if($this->form_validation->run() == TRUE){
-            $jawaban = $this->input->post('soal-jawaban', TRUE);
+            if (!empty($_FILES['file-image']['name'])) {
+                $config['upload_path'] = './uploads/images/jawaban/';
+                $config['allowed_types'] = 'jpg|png|jpeg';
+                $config['max_size'] = '2048';
+                $config['overwrite'] = true;
+
+                $this->load->library('upload', $config);
+
+                if ($this->upload->do_upload('file-image')) {
+                    $jawaban = '<img src="'.base_url().'uploads/images/jawaban/'.$this->upload->data('file_name').'">';
+                } else {
+                    $status['pesan'] = validation_errors();
+                }
+
+            } else {
+                $jawaban = $this->input->post('soal-jawaban', TRUE);
+            }
+            
             $tes_id = $this->input->post('tes-id', TRUE);
             $tes_user_id = $this->input->post('tes-user-id', TRUE);
             $tes_soal_id = $this->input->post('tes-soal-id', TRUE);
@@ -163,7 +183,7 @@ class Tes_kerjakan extends Tes_Controller {
 
                 // Mengecek apakah soal ada
                 $query_soal = $this->cbt_tes_soal_model->get_by_tessoal_limit($tes_soal_id, 1);
-                if($query_soal->num_rows()>0){
+                if($query_soal->num_rows()>0) {
                     $query_soal = $query_soal->row();
 
                     $data_tes_soal['tessoal_change_time'] = date('Y-m-d H:i:s');
@@ -212,6 +232,9 @@ class Tes_kerjakan extends Tes_Controller {
                         $status['nomor_soal'] = $tes_soal_nomor;
                         $status['pesan'] = 'Jawaban yang dimasukkan berhasil disimpan';
                     }else if($query_soal->soal_tipe==3){
+                        //Upload gambar
+
+
                         // Mendapatkan data tes
                         $query_tes = $this->cbt_tes_model->get_by_kolom_limit('tes_id', $tes_id, 1)->row();
                         
@@ -222,6 +245,15 @@ class Tes_kerjakan extends Tes_Controller {
                         }else{
                             $data_tes_soal['tessoal_nilai'] = $query_tes->tes_score_wrong;
                         }
+                        $this->cbt_tes_soal_model->update('tessoal_id', $tes_soal_id, $data_tes_soal);
+
+                        $status['status'] = 1;
+                        $status['nomor_soal'] = $tes_soal_nomor;
+                        $status['pesan'] = 'Jawaban yang dimasukkan berhasil disimpan';
+                    } elseif ($query_soal->soal_tipe==4) {
+                        // Mengupdate change time, dan jawaban essay
+                        $data_tes_soal['tessoal_jawaban_text'] = $jawaban;
+                        $data_tes_soal['tessoal_nilai'] = 0;
                         $this->cbt_tes_soal_model->update('tessoal_id', $tes_soal_id, $data_tes_soal);
 
                         $status['status'] = 1;
@@ -245,6 +277,28 @@ class Tes_kerjakan extends Tes_Controller {
         }
         
         echo json_encode($status);
+    }
+
+    public function file_check() {
+        $allowed_type_file = array('image/jpg', 'image/jpeg', 'image/png', 'image/x-png');
+        $mime = get_mime_by_extension($_FILES['file-image']['name']);
+
+        if (isset($_FILES['file-image']['name']) && $_FILES['file-image']['name'] != "") {
+            if (in_array($mime, $allowed_type_file)) {
+                if ($_FILES['file-image']['size'] > 2048000) {
+                    $this->form_validation->set_message('file_check', 'Ukuran gambar terlalu besar! Pastikan kurang dari 2MB!');
+                    return FALSE;
+                } else {
+                return TRUE;                    
+                }
+            } else {
+                $this->form_validation->set_message('file_check', 'Silahkan masukkan hanya file gambar saja!');
+                return FALSE;
+            }
+        } else {
+            $this->form_validation->set_message('file_check', 'Pilih gambar untuk diupload!');
+                return FALSE;
+        }
     }
 
     /**
@@ -502,6 +556,25 @@ class Tes_kerjakan extends Tes_Controller {
                         }else{
                             $soal = $soal.'
                                 <input type="text" class="form-control" style="max-width: 500px;" id="soal-jawaban" name="soal-jawaban" autocomplete="off" />
+                                <br />
+                                <button type="button" onclick="jawab()" class="btn btn-default" style="margin-bottom: 5px;" title="Simpan Jawaban">Simpan Jawaban</button>
+                                ';
+                        }
+                    }else if($query_soal->soal_tipe==4){
+                        if(!empty($query_soal->tessoal_jawaban_text)){
+                            $soal = $soal.$query_soal->tessoal_jawaban_text.
+                                '<input type="hidden" name="soal-jawaban" id="soal-jawaban" value="upload-gambar">
+                                <br />
+                                <input type="file" id="file-image" name="file-image" accept="image/*">
+                                <p class="help-block">File yang didukung adalah jpg, jpeg, png</p>
+                                <br />
+                                <button type="button" onclick="jawab()" class="btn btn-default" style="margin-bottom: 5px;" title="Simpan Jawaban">Simpan Jawaban</button>
+                                ';
+                        }else{
+                            $soal = $soal.'
+                                <input type="hidden" name="soal-jawaban" id="soal-jawaban" value="upload-gambar">
+                                <input type="file" id="file-image" name="file-image" accept="image/*">
+                                <p class="help-block">File yang didukung adalah jpg, jpeg, png</p>
                                 <br />
                                 <button type="button" onclick="jawab()" class="btn btn-default" style="margin-bottom: 5px;" title="Simpan Jawaban">Simpan Jawaban</button>
                                 ';

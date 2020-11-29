@@ -262,7 +262,7 @@ class Cbt_tes_user_model extends CI_Model{
         }
 
         $this->db->select('cbt_tes_soal.tessoal_id, cbt_tes_soal.tessoal_jawaban_text, cbt_tes.*, cbt_soal.*')
-                 ->where('(soal_tipe="2" AND tessoal_jawaban_text IS NOT NULL AND tessoal_comment IS NULL '.$sql.' )')
+                 ->where('(soal_tipe IN (2,4) AND tessoal_jawaban_text IS NOT NULL AND tessoal_comment IS NULL '.$sql.' )')
                  ->from($this->table)
                  ->join('cbt_tes', 'cbt_tes_user.tesuser_tes_id = cbt_tes.tes_id')
                  ->join('cbt_tes_soal', 'cbt_tes_soal.tessoal_tesuser_id = cbt_tes_user.tesuser_id')
@@ -279,7 +279,7 @@ class Cbt_tes_user_model extends CI_Model{
         }
 
         $this->db->select('COUNT(*) AS hasil')
-                 ->where('(soal_tipe="2" AND tessoal_jawaban_text IS NOT NULL AND tessoal_comment IS NULL '.$sql.' )')
+                 ->where('(soal_tipe IN (2,4) AND tessoal_jawaban_text IS NOT NULL AND tessoal_comment IS NULL '.$sql.' )')
                  ->join('cbt_tes_soal', 'cbt_tes_soal.tessoal_tesuser_id = cbt_tes_user.tesuser_id')
                  ->join('cbt_soal', 'cbt_tes_soal.tessoal_soal_id = cbt_soal.soal_id')
                  ->from($this->table);

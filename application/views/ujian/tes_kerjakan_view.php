@@ -13,7 +13,7 @@
 	<!-- Main content -->
     <section class="content">
     	<div class="row">
-        <?php echo form_open('tes_kerjakan/simpan_jawaban','id="form-kerjakan"')?>
+        <?php echo form_open_multipart('tes_kerjakan/simpan_jawaban','id="form-upload"')?>
             <input type="hidden" name="tes-id" id="tes-id" value="<?php if(!empty($tes_id)){ echo $tes_id; } ?>">
             <input type="hidden" name="tes-user-id" id="tes-user-id" value="<?php if(!empty($tes_user_id)){ echo $tes_user_id; } ?>">
             <input type="hidden" name="tes-soal-id" id="tes-soal-id" value="<?php if(!empty($tes_soal_id)){ echo $tes_soal_id; } ?>">
@@ -73,8 +73,8 @@
                         <div class="box-body">
                             <div id="form-pesan"></div>
                             <div class="callout callout-info">
-                                <p>Apakah anda yakin untuk submit Tes ini ?
-								<br />Jawaban Tes yang sudah disubmit tidak dapat diubah.
+                                <p>Apakah anda yakin akan submit Tes ini ?
+								<br />Jawaban yang sudah disubmit tidak dapat diubah.
 								</p>
 								
                             </div>
@@ -92,7 +92,7 @@
                             <div class="form-group">
                                 <div class="checkbox">
                                     <label>
-                                        <input type="checkbox" id="hentikan-centang" name="hentikan-centang" value="1"> Centang dan klik tombol Sumit Tes.
+                                        <input type="checkbox" id="hentikan-centang" name="hentikan-centang" value="1"> Centang dan klik tombol Submit Tes.
                                     </label>
                                 </div>
                             </div>
@@ -304,7 +304,7 @@
     }
 
     function jawab(){
-        $('#form-kerjakan').submit();
+        $('#form-upload').submit();
     }
 
     function hentikan_tes(){
@@ -379,6 +379,45 @@
                             $('#btn-soal-'+obj.nomor_soal).removeClass('btn-default');
                             $('#btn-soal-'+obj.nomor_soal).removeClass('btn-warning');
                             $('#btn-soal-'+obj.nomor_soal).addClass('btn-primary');
+                        }else if(obj.status==2){
+                            window.location.reload();
+                        }else{
+                            $("#modal-proses").modal('hide');
+                            notify_error(obj.pesan);
+                        }
+                    },
+                    error: function(xmlhttprequest, textstatus, message) {
+                        if(textstatus==="timeout") {
+                            $("#modal-proses").modal('hide');
+                            notify_error("Gagal menyimpan jawaban, Silahkan Refresh Halaman");
+                        }else{
+                            $("#modal-proses").modal('hide');
+                            notify_error(textstatus);
+                        }
+                    }
+            });
+            return false;
+        });
+
+        $('#form-upload').submit(function(){
+            $("#modal-proses").modal('show');
+            $.ajax({
+                    url:"<?php echo site_url().'/'.$url; ?>/simpan_jawaban",
+                    type:"POST",
+                    data:new FormData(this),
+                    mimeType: "multipart/form-data",
+                    contentType:false,
+                    cache: false,
+                    processData: false,
+                    success:function(respon){
+                        var obj = $.parseJSON(respon);
+                        if(obj.status==1){
+                             $("#modal-proses").modal('hide');
+                            notify_success(obj.pesan);
+                            $('#btn-soal-'+obj.nomor_soal).removeClass('btn-default');
+                            $('#btn-soal-'+obj.nomor_soal).removeClass('btn-warning');
+                            $('#btn-soal-'+obj.nomor_soal).addClass('btn-primary');
+                            $("#modal-proses").modal('hide');
                         }else if(obj.status==2){
                             window.location.reload();
                         }else{

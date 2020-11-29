@@ -70,7 +70,7 @@ class Modul_soal extends Member_Controller {
 	        	}
         	}else{
         		// Jika user tidak dibatasi mengedit soal sesuai topik
-        		$query_modul = $this->cbt_modul_model->get_by_kolom("modul_id","9");
+        		$query_modul = $this->cbt_modul_model->get_by_kolom('modul_id', 9);
 		        if($query_modul->num_rows()>0){
 		        	$select = '';
 		        	$query_modul = $query_modul->result();
@@ -410,7 +410,7 @@ class Modul_soal extends Member_Controller {
             	<a onclick="hapus(\''.$temp->soal_id.'\')" style="cursor: pointer;" class="btn btn-default btn-xs">Hapus Soal</a>
             ';*/
 
-            if($temp->soal_tipe!=2 AND $temp->soal_tipe!=3){
+            if($temp->soal_tipe!=2 AND $temp->soal_tipe!=3 AND $temp->soal_tipe!=4){
             	$record[] = '<div style="text-align: center;">
 	            	<a onclick="jawaban(\''.$temp->soal_id.'\')" title="Tambah Jawaban" style="cursor: pointer;"><span class="glyphicon glyphicon-question-sign"></span></a>
 	            	<a onclick="edit(\''.$temp->soal_id.'\')" title="Edit Soal" style="cursor: pointer;"><span class="glyphicon glyphicon-edit"></span></a>

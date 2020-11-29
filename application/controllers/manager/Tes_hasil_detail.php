@@ -102,6 +102,8 @@ class Tes_hasil_detail extends Member_Controller {
 				$record[] = 'Essay';
 			}else if($temp->soal_tipe==3){
 				$record[] = 'Jawaban Singkat';
+			}else if($temp->soal_tipe==4){
+				$record[] = 'Upload Gambar';
 			}
 
 			$soal = $temp->soal_detail;
@@ -182,6 +184,20 @@ class Tes_hasil_detail extends Member_Controller {
 		            	<td width="5%"></td>
 		                <td width="5%">Skor</td>
 		                <td width="90%" colspan="2">Jawaban Singkat</td>
+		            </tr>
+	            	<tr>
+		            	<td width="5%"></td>
+		                <td width="5%">'.$temp->tessoal_nilai.'</td>
+		                <td width="90%" colspan="2"><div style="width:100%;">'.$temp->tessoal_jawaban_text.'</div></td>
+		            </tr>
+	            ';
+            }else if($temp->soal_tipe==4){
+            	// Jika soal adalah soal essay
+            	$jawaban_table = $jawaban_table.'
+            		<tr>
+		            	<td width="5%"></td>
+		                <td width="5%">Skor</td>
+		                <td width="90%" colspan="2">Jawaban</td>
 		            </tr>
 	            	<tr>
 		            	<td width="5%"></td>
